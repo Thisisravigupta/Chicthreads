@@ -1,0 +1,131 @@
+<!-- product-template.liquid -->
+
+<div itemscope itemtype="http://schema.org/Product" class="product-detail">
+  <div class="product-images carousel carousel-main" data-flickity='{ "fullscreen": true, "lazyLoad": 1 }'>
+    {% for image in product.images %}
+      <div class="carousel-cell">
+        <img src="{{ image.src | img_url: 'master' }}" alt="{{ image.alt }}" itemprop="image">
+      </div>
+    {% endfor %}
+  </div>
+  
+  <div class="product-info">
+    <h1 itemprop="name">{{ product.title }}</h1>
+
+    <div class="product-description" itemprop="description">{{ product.description }}</div>
+    
+    <form action="/cart/add" method="post" id="product-form">
+      {% if product.variants.size > 1 %}
+        <select name="id" id="variant-select">
+          {% for variant in product.variants %}
+            <span></span>
+            <option value="{{ variant.id }}" {% if variant == product.selected_variant %} selected="selected" {% endif %}>
+              {{ variant.title }} - 
+            </option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+      {% endif %}
+      
+      <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  var variantSelect = document.getElementById('variant-select');
+  var productPrice = document.querySelector('.product-price');
+
+  if (variantSelect) {
+    variantSelect.addEventListener('change', function() {
+      // Assuming the 'product' object is accessible globally
+      var selectedVariant = product.variants.find(function(variant) {
+        return variant.id == variantSelect.value;
+      });
+
+      if (selectedVariant) {
+        productPrice.textContent = Shopify.formatMoney(selectedVariant.price, "{{ shop.money_format }}");
+      }
+    });
+  }
+});
+
+</script>
+
+<style>
+  .product-detail {
+    background-color: {{ settings.product_detail_bg_color | default: '#ffffff' }};
+    color: {{ settings.product_detail_text_color | default: '#333333' }};
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .product-images img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .product-info {
+    max-width: 600px;
+    margin-left: 20px;
+  }
+
+  .product-price {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .product-description {
+    margin-top: 20px;
+    color: #666;
+  }
+
+  .add-to-cart-btn {
+    padding: 10px 20px;
+    background-color: {% case settings.product_detail_button_style %}
+      {% when 'primary' %} #3498db;
+      {% when 'secondary' %} #e74c3c;
+      {% else %} #2ecc71;
+    {% endcase %};
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+  }
+
+  .add-to-cart-btn:hover {
+    background-color: {% case settings.product_detail_button_style %}
+      {% when 'primary' %} #2980b9;
+      {% when 'secondary' %} #c0392b;
+      {% else %} #27ae60;
+    {% endcase %};
+  }
+
+  #variant-select {
+    margin-bottom: 10px;
+  }
+</style>
+
+
+
+{%  schema  %} 
+  {
+    "name": "Electronic Category",
+    "class": "Electronic Category",
+    "settings": [],
+    "presets": [
+      {
+        "name": "Electronic"
+      }
+    ]
+  }
+{% endschema %}
